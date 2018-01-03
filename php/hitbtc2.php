@@ -887,7 +887,7 @@ class hitbtc2 extends hitbtc {
         throw new OrderNotFound ($this->id . ' order ' . $id . ' not found');
     }
 
-    public function fetch_active_order ($id, $symbol = null, $params = array ()) {
+    public function fetch_open_order ($id, $symbol = null, $params = array ()) {
         $this->load_markets();
         $response = $this->privateGetOrderClientOrderId (array_merge (array (
             'clientOrderId' => $id,
@@ -946,6 +946,17 @@ class hitbtc2 extends hitbtc {
             $request['limit'] = $limit;
         $response = $this->privateGetHistoryTrades (array_merge ($request, $params));
         return $this->parse_trades($response, $market, $since, $limit);
+    }
+
+    public function fetch_order_trades ($id, $symbol = null, $params = array ()) {
+        // The $id needed here is the exchange's $id, and not the clientOrderID, which is
+        // the $id that is stored in the unified api order $id. In order the get the exchange's $id,
+        // you need to grab it from order['info']['id']
+        $this->load_markets();
+        $trades = $this->privateGetHistoryOrderIdTrades (array_merge (array (
+            'id' => $id,
+        ), $params));
+        return $this->parse_trades($trades);
     }
 
     public function create_deposit_address ($currency, $params = array ()) {

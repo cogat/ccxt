@@ -219,7 +219,7 @@ class bithumb (Exchange):
         self.load_markets()
         market = self.market(symbol)
         request = None
-        method = 'privatePost'
+        method = 'privatePostTrade'
         if type == 'limit':
             request = {
                 'order_currency': market['id'],
@@ -228,13 +228,13 @@ class bithumb (Exchange):
                 'price': price,
                 'type': 'bid' if (side == 'buy') else 'ask',
             }
-            method += 'TradePlace'
+            method += 'Place'
         elif type == 'market':
             request = {
                 'currency': market['id'],
                 'units': amount,
             }
-            method += 'Market' + self.capitalise(side)
+            method += 'Market' + self.capitalize(side)
         response = getattr(self, method)(self.extend(request, params))
         id = None
         if 'order_id' in response:
@@ -277,9 +277,12 @@ class bithumb (Exchange):
             nonce = str(self.nonce())
             auth = endpoint + "\0" + body + "\0" + nonce
             signature = self.hmac(self.encode(auth), self.encode(self.secret), hashlib.sha512)
+            signature64 = self.decode(base64.b64encode(self.encode(signature)))
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': self.apiKey,
-                'Api-Sign': self.decode(base64.b64encode(self.encode(signature))),
+                'Api-Sign': str(signature64),
                 'Api-Nonce': nonce,
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}

@@ -234,7 +234,7 @@ module.exports = class bithumb extends Exchange {
         await this.loadMarkets ();
         let market = this.market (symbol);
         let request = undefined;
-        let method = 'privatePost';
+        let method = 'privatePostTrade';
         if (type == 'limit') {
             request = {
                 'order_currency': market['id'],
@@ -243,13 +243,13 @@ module.exports = class bithumb extends Exchange {
                 'price': price,
                 'type': (side == 'buy') ? 'bid' : 'ask',
             };
-            method += 'TradePlace';
+            method += 'Place';
         } else if (type == 'market') {
             request = {
                 'currency': market['id'],
                 'units': amount,
             };
-            method += 'Market' + this.capitalise (side);
+            method += 'Market' + this.capitalize (side);
         }
         let response = await this[method] (this.extend (request, params));
         let id = undefined;
@@ -297,9 +297,12 @@ module.exports = class bithumb extends Exchange {
             let nonce = this.nonce ().toString ();
             let auth = endpoint + "\0" + body + "\0" + nonce;
             let signature = this.hmac (this.encode (auth), this.encode (this.secret), 'sha512');
+            let signature64 = this.decode (this.stringToBase64 (this.encode (signature)));
             headers = {
+                'Accept': 'application/json',
+                'Content-Type': 'application/x-www-form-urlencoded',
                 'Api-Key': this.apiKey,
-                'Api-Sign': this.decode (this.stringToBase64 (this.encode (signature))),
+                'Api-Sign': signature64.toString (),
                 'Api-Nonce': nonce,
             };
         }
