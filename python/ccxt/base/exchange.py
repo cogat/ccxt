@@ -91,7 +91,6 @@ class Exchange(object):
     limits = {}
     fees = {'trading': {}, 'funding': {}}
     ids = None
-    currencies = None
     tickers = None
     api = None
     parseJsonResponse = True
